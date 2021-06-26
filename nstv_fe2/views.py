@@ -4,21 +4,6 @@ from .models import Show, Episode
 from .nzbg import NZBGeek
 
 
-class SearchResult:
-    def __init__(self, result_table):
-        self.title = result_table.find("a", class_="releases_title").text.strip()
-        self.category = result_table.find(
-            "a", class_="releases_category_text"
-        ).text.strip()
-        self.file_size = result_table.find("td", class_="releases_size").text.strip()
-        self.download_url = result_table.find("a", attrs={"title": "Download NZB"}).get(
-            "href"
-        )
-
-    def __str__(self):
-        return f"{self.title}, {self.category}"
-
-
 def index(request):
     shows = Show.objects.all()
     return render(request, context={"shows": shows}, template_name="index.html")

@@ -110,7 +110,7 @@ class NZBGeek:
 
         #  wait until file is downloaded
         nzb_files = glob("/home/nick/Downloads/*.nzb")
-        while len(nzb_files) == 0:
+        while len(nzb_files) == 0:  # pragma: no cover
             sleep(1)
             nzb_files = glob("/home/nick/Downloads/*.nzb")
         print("\nNZB file downloaded.")
