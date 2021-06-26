@@ -1,7 +1,9 @@
 import datetime
+import os
 
 from django.test import TestCase
 from .models import Episode, Show
+from .nzbg import NZBGeek
 
 
 class EpisodeTestCase(TestCase):
@@ -39,3 +41,13 @@ class ShowTestCase(TestCase):
         show = Show.objects.get(title="Seinfeld")
         seinfeld_episodes = Episode.objects.filter(show=show)
         seinfeld_episodes.filter(title="The Parking Garage").exists()
+
+
+class NZBGeekTestCase(TestCase):
+    def setUp(self):
+        self.nzbg = NZBGeek()
+        self.nzbg.login()
+
+    def test_assert_logged_in(self):
+        r = self.nzbg.session.get("https://nzbgeek.info/dashboard.php")
+        assert os.getenv("NZBGEEK_USERNAME") in str(r.content)
