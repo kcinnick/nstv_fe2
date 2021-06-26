@@ -19,6 +19,7 @@ from django.urls import path
 from nstv_fe2 import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('index/', views.index, name='index')
+    path("admin/", admin.site.urls),
+    path("index/", views.index, name="index"),
+    path("shows/<show_id>", views.show, name="show"),
 ]
