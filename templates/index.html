@@ -1,1 +1,5 @@
-this is the index
+<h1> NSTV Database </h1>
+
+{% for show in shows %}
+    - <a href="/shows/{{ show.id }}"> {{ show.title }} </a>
+{% endfor %}

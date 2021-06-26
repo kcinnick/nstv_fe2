@@ -5,5 +5,4 @@ from .models import Show
 # Create your views here.
 def index(request):
     shows = Show.objects.all()
-    print(shows)
-    return render(request, template_name='index.html')
+    return render(request, context={'shows': shows}, template_name='index.html')
