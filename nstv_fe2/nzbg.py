@@ -1,3 +1,4 @@
+from time import sleep
 import os
 import re
 import webbrowser
@@ -31,25 +32,17 @@ class NZBGeek:
 
     def login(self):
         # get nzbgeek csrf token
-        r = self.session.get("https://nzbgeek.info/logon.php")
-        try:
-            random_thing = re.search(
+        if self.logged_in:
+            print('User already logged in.\n')
+            return
+
+        nzbgeek_login_url = "https://nzbgeek.info/logon.php"
+        r = self.session.get(nzbgeek_login_url)
+
+        random_thing = re.search(
                 r'<input type="hidden" name="random_thing" id="random_thing" value="(\w+)">',
                 str(r.content),
             ).group(1)
-        except AttributeError as e:
-            #  occurs if user is already logged in
-            if os.getenv('NZBGEEK_USERNAME') in str(r.content):
-                return
-            else:  # pragma: no cover
-                print('Random thing for login was missing but user is not already logged in.')
-                print('This should never happen. Something is wrong.  Look at the stacktrace:')
-                print('\nHTML Content:', r.content)
-                raise e
-                #  until, (or if ever) the above occurs, we'll remove the noqa's above and test it accordingly.
-                #  until then, unsure how to test it.
-        # login to nzbgeek
-        nzbgeek_login_url = "https://nzbgeek.info/logon.php"
         login_payload = {
             "logon": "logon",
             "random_thing": random_thing,
@@ -58,8 +51,31 @@ class NZBGeek:
         }
         self.session.post(nzbgeek_login_url, login_payload)
         r = self.session.get("https://nzbgeek.info/dashboard.php")
+
         assert os.getenv("NZBGEEK_USERNAME") in str(r.content)
-        return r
+        self.logged_in = True
+
+        return
+
+    def _build_search_url(self, show, season_number, episode_number, episode_title=None):
+        if season_number and episode_number:
+            print(f"\nSearching for {show.title} S{season_number} E{episode_number}")
+            url = f"https://nzbgeek.info/geekseek.php?tvid={show.gid}"
+            url += f"&season=S{str(season_number).zfill(2)}"
+            url += f"&episode=E{str(episode_number).zfill(2)}"
+        else:
+            if not episode_title:
+                raise AttributeError(
+                    "get_nzb needs either season_number & episode_number"
+                    " or an episode title."
+                )
+            print(f"\nSearching for {show.title} - {episode_title}")
+            url = "https://nzbgeek.info/geekseek.php?moviesgeekseek=1"
+            url += "&c=5000&browseincludewords="
+            url += f'{show.title.replace(" ", "+")}+'
+            url += f'{episode_title.replace(" ", "+")}'
+
+        return url
 
     def get_nzb(
             self, show, season_number=None, episode_number=None, episode_title=None, hd=True
@@ -76,22 +92,12 @@ class NZBGeek:
         @param hd:  bool, grabs only HD-categorized files if set to True
         @return:
         """
-        if season_number and episode_number:
-            print(f"\nSearching for {show.title} S{season_number} E{episode_number}")
-            url = f"https://nzbgeek.info/geekseek.php?tvid={show.gid}"
-            url += f"&season=S{str(season_number).zfill(2)}"
-            url += f"&episode=E{str(episode_number).zfill(2)}"
-        else:
-            if not episode_title:
-                raise AttributeError(
-                    "get_nzb needs either season_number & episode_number"
-                    " or an episode title."
-                )
-            url = "https://nzbgeek.info/geekseek.php?moviesgeekseek=1"
-            url += "&c=5000&browseincludewords="
-            url += f'{show.title.replace(" ", "+")}+'
-            url += f'{episode_title.replace(" ", "+")}'
-
+        url = self._build_search_url(
+            show=show,
+            episode_number=episode_number,
+            season_number=season_number,
+            episode_title=episode_title
+        )
         print(f"\nRequesting {url}")
         r = self.session.get(url)
 
@@ -106,7 +112,6 @@ class NZBGeek:
             return
         webbrowser.open(results[0].download_url)
         #  TODO: above fails if no download links found
-        from time import sleep
 
         #  wait until file is downloaded
         nzb_files = glob("/home/nick/Downloads/*.nzb")
@@ -120,3 +125,5 @@ class NZBGeek:
             dest_path = f"/home/nick/PycharmProjects/nstv_fe/nzbs/{file_name}"
             os.rename(file, f"/home/nick/PycharmProjects/nstv_fe/nzbs/{file_name}")
             print(f"{file_name} moved to {dest_path}.")
+
+        return
