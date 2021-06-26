@@ -7,7 +7,7 @@
 <body>
 {% for episode in show_episodes %}
     <tr>
-        - {{ episode.title }} <a href="/shows/{{ show.id }}/episode/{{ episode.season }}/number/{{ episode.number }}/nzbgeek">Download via NZBGeek</a>
+        - {{ episode.title }} <a href="/shows/{{ show.id }}/season/{{ episode.season }}/episode/{{ episode.number }}/nzbgeek">Download via NZBGeek</a>
     </tr>
 {% endfor %}
 </body>

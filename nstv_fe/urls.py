@@ -20,6 +20,16 @@ from nstv_fe2 import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("", views.index, name="index"),
     path("index/", views.index, name="index"),
-    path("shows/<show_id>", views.show, name="show"),
+    path(
+        "shows/<show_id>",
+        views.show,
+        name="show"
+    ),
+    path(
+        "shows/<show_id>/season/<season_number>/episode/<episode_number>/nzbgeek",
+        views.download_episode,
+        name='nzbdownload'
+    ),
 ]
