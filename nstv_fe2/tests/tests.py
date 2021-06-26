@@ -2,8 +2,8 @@ import datetime
 import os
 
 from django.test import TestCase
-from .models import Episode, Show
-from .nzbg import NZBGeek
+from nstv_fe2.models import Episode, Show
+from nstv_fe2.nzbg import NZBGeek
 
 
 class EpisodeTestCase(TestCase):

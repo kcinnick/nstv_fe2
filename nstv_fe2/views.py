@@ -1,11 +1,5 @@
-import os
-import re
-import webbrowser
-from glob import glob
-from bs4 import BeautifulSoup
-
-import requests
 from django.shortcuts import render, redirect
+
 from .models import Show, Episode
 from .nzbg import NZBGeek
 
