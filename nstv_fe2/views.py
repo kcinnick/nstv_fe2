@@ -20,27 +20,13 @@ def show(request, show_id):
 
 
 def download_episode(request, show_id, season_number, episode_number):
-    print(
-        f"\nseason number: {season_number}"
-        f"\nepisode_number: {episode_number}"
-        f"\nshow ID: {show_id}"
-    )
-
     nzb_geek = NZBGeek()
     nzb_geek.login()
     episode = Episode.objects.get(season=season_number, number=episode_number)
     parent_show = Show.objects.get(id=show_id)
     print('Episode title: {}'.format(episode.title))
-    if episode.title:
-        nzb_geek.get_nzb(
+    nzb_geek.get_nzb(
             show=parent_show,
             episode_title=episode.title,
         )
-    else:
-        print(
-            'Searching shows by season or episode number '
-            'isn\'t currently supported.\n'
-        )
-        raise NotImplementedError
-
     return redirect(f'/shows/{show_id}')
