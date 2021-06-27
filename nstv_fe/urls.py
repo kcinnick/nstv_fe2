@@ -32,4 +32,9 @@ urlpatterns = [
         views.download_episode,
         name='nzbdownload'
     ),
+    path(
+        "shows/<show_id>/title/<episode_title>/nzbgeek",
+        views.download_episode,
+        name='nzbdownload',
+    )
 ]

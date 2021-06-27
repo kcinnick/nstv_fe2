@@ -2,16 +2,14 @@ from django.db import models
 
 
 class Show(models.Model):
-    id = models.IntegerField(primary_key=True, unique=True, auto_created=True)
-    title = models.TextField()
+    title = models.TextField(unique=True)
     gid = models.IntegerField(unique=True, null=True)
 
 
 class Episode(models.Model):
-    id = models.IntegerField(primary_key=True, unique=True, auto_created=True)
-    title = models.TextField()
-    season = models.IntegerField()
-    number = models.IntegerField()
+    title = models.TextField(unique=True)
+    season = models.IntegerField(null=True)
+    number = models.IntegerField(null=True)
     original_air_date = models.DateField()
 
     show = models.ForeignKey("Show", on_delete=models.CASCADE, null=True)

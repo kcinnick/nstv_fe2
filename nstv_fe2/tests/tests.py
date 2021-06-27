@@ -5,7 +5,7 @@ from django.test import TestCase, SimpleTestCase
 
 from nstv_fe2.models import Episode, Show
 from nstv_fe2.nzbg import NZBGeek
-from nstv_fe2.views import search_channels  # TODO: this shouldn't be in .views
+from nstv_fe2.views import search_channels, parse_channel_search_response  # TODO: this shouldn't be in .views
 
 
 class EpisodeTestCase(TestCase):
@@ -109,7 +109,7 @@ class ShowsIndexViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Seinfeld")
         shows = Show.objects.all()
-        self.assertQuerysetEqual(response.context['shows'], shows)
+        self.assertQuerysetEqual(response.context['shows'].order_by('id'), shows.order_by('id'))
 
 
 class ShowViewTests(TestCase):
@@ -166,24 +166,26 @@ class DownloadEpisodeTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
 
-class SearchChannelsTests(SimpleTestCase):
+class SearchChannelsTests(TestCase):
     def setUp(self):
-        pass
+        Show.objects.create(
+            id=1,
+            title="Seinfeld",
+            gid=79169
+        )
+        self.start_date = (datetime.datetime.now() - datetime.timedelta(1)).strftime('%Y-%m-%d')
+        self.end_date = datetime.datetime.now().strftime('%Y-%m-%d')
+
 
     def test_search_channels(self):
-        start_date = (datetime.datetime.now() - datetime.timedelta(1)).strftime('%Y-%m-%d')
-        end_date = datetime.datetime.now().strftime('%Y-%m-%d')
-
         json_response = search_channels(
             start_channel=2, end_channel=29,
-            start_date=start_date, end_date=end_date)
-
+            start_date=self.start_date, end_date=self.end_date)
         expected_channel_list = [2, 3, 4, 5, 6, 7, 8, 9, 11, 15, 16,
                                  17, 20, 22, 23, 24, 25, 27, 28, 29]
         actual_channel_list = []
         for item in json_response:
             actual_channel_list.append(item['channel']['channelNumber'])
-
         assert expected_channel_list == actual_channel_list
 
     def test_assert_error_is_raised_on_invalid_search(self):
