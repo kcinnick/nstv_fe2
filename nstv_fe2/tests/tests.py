@@ -5,7 +5,7 @@ from django.test import TestCase, SimpleTestCase
 
 from nstv_fe2.models import Episode, Show
 from nstv_fe2.nzbg import NZBGeek
-from nstv_fe2.views import search_channels, parse_channel_search_response  # TODO: this shouldn't be in .views
+from nstv_fe2.tvtv_scraper import search_channels  # TODO: this shouldn't be in .views
 
 
 class EpisodeTestCase(TestCase):
@@ -105,9 +105,6 @@ class ShowsIndexViewTests(TestCase):
         )
 
     def test_shows_index(self):
-        """
-        If no questions exist, an appropriate message is displayed.
-        """
         response = self.client.get('http://localhost:8000')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Seinfeld")

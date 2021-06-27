@@ -111,8 +111,8 @@ class NZBGeek:
 
         if not len(results):
             raise ValueError("No results found.")
+
         webbrowser.open(results[0].download_url)
-        #  TODO: above fails if no download links found
 
         #  wait until file is downloaded
         nzb_files = glob("/home/nick/Downloads/*.nzb")
