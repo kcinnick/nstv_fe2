@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <title>{{ show.title }}</title>
 </head>
+<center><h1>{{ show.title }}</h1></center>
 <body>
+<table>
 {% for episode in show_episodes %}
     <tr>
-        - {{ episode.title }} <a href="/shows/{{ show.id }}/title/{{ episode.title }}/nzbgeek">Download via NZBGeek</a>
+        <td>{{ episode.title }} <a href="/shows/{{ show.id }}/title/{{ episode.title }}/nzbgeek">Download via NZBGeek</a></td>
     </tr>
 {% endfor %}
+</table>
 </body>
 </html>

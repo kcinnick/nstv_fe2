@@ -168,7 +168,7 @@ def parse_channel_search_response(response):
 
 
 def update_db():
-    start_date = (datetime.datetime.now() - datetime.timedelta(1)).strftime('%Y-%m-%d')
+    start_date = (datetime.datetime.now() - datetime.timedelta(10)).strftime('%Y-%m-%d')
     end_date = datetime.datetime.now().strftime('%Y-%m-%d')
 
     json_response = search_channels(

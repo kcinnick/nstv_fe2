@@ -1,5 +1,7 @@
 <h1> NSTV Database </h1>
 
+<table>
 {% for show in shows %}
-    - <a href="/shows/{{ show.id }}"> {{ show.title }} </a>
+    <tr><td><a href="/shows/{{ show.id }}"> {{ show.title }} </a></td></tr>
 {% endfor %}
+</table>
