@@ -1,8 +1,8 @@
-from time import sleep
 import os
 import re
 import webbrowser
 from glob import glob
+from time import sleep
 
 import requests
 from bs4 import BeautifulSoup
@@ -33,16 +33,16 @@ class NZBGeek:
     def login(self):
         # get nzbgeek csrf token
         if self.logged_in:
-            print('User already logged in.\n')
+            print("User already logged in.\n")
             return
 
         nzbgeek_login_url = "https://nzbgeek.info/logon.php"
         r = self.session.get(nzbgeek_login_url)
 
         random_thing = re.search(
-                r'<input type="hidden" name="random_thing" id="random_thing" value="(\w+)">',
-                str(r.content),
-            ).group(1)
+            r'<input type="hidden" name="random_thing" id="random_thing" value="(\w+)">',
+            str(r.content),
+        ).group(1)
         login_payload = {
             "logon": "logon",
             "random_thing": random_thing,
@@ -57,7 +57,9 @@ class NZBGeek:
 
         return
 
-    def _build_search_url(self, show, season_number, episode_number, episode_title=None):
+    def _build_search_url(
+        self, show, season_number, episode_number, episode_title=None
+    ):
         if season_number and episode_number:
             print(f"\nSearching for {show.title} S{season_number} E{episode_number}")
             url = f"https://nzbgeek.info/geekseek.php?tvid={show.gid}"
@@ -78,7 +80,7 @@ class NZBGeek:
         return url
 
     def get_nzb(
-            self, show, season_number=None, episode_number=None, episode_title=None, hd=True
+        self, show, season_number=None, episode_number=None, episode_title=None, hd=True
     ):
         """
         Searches and downloads the first result on NZBGeek for the given
@@ -96,7 +98,7 @@ class NZBGeek:
             show=show,
             episode_number=episode_number,
             season_number=season_number,
-            episode_title=episode_title
+            episode_title=episode_title,
         )
         print(f"\nRequesting {url}")
         r = self.session.get(url)
@@ -108,8 +110,7 @@ class NZBGeek:
             results = [i for i in results if i.category == "TV > HD"]
 
         if not len(results):
-            print("No results found.")
-            return
+            raise ValueError("No results found.")
         webbrowser.open(results[0].download_url)
         #  TODO: above fails if no download links found
 

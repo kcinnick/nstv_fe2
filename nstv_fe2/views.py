@@ -1,10 +1,9 @@
 import datetime
 
 import requests
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 
-import nstv_fe2.models
-from .models import Show, Episode
+from .models import Episode, Show
 from .nzbg import NZBGeek
 
 
@@ -24,32 +23,20 @@ def show(request, show_id):
     )
 
 
-def download_episode(request, show_id, season_number=None, episode_number=None, episode_title=None):
+def download_episode(
+    request, show_id, season_number=None, episode_number=None, episode_title=None
+):
     nzb_geek = NZBGeek()
     nzb_geek.login()
-    if episode_title:
-        episode = Episode.objects.get(title=episode_title)
-    else:
+    if not episode_title:
         episode = Episode.objects.get(season=season_number, number=episode_number)
+        episode_title = episode.title
 
     parent_show = Show.objects.get(id=show_id)
-    if episode_title:
-        print('Episode title: {}'.format(episode_title))
-    else:
-        print('Episode title: {}'.format(episode.title))
+    print("Episode title: {}".format(episode_title))
+    nzb_geek.get_nzb(show=parent_show, episode_title=episode_title)
 
-    if episode_title:
-        nzb_geek.get_nzb(
-            show=parent_show,
-            episode_title=episode_title,
-        )
-    else:
-        nzb_geek.get_nzb(
-            show=parent_show,
-            episode_title=episode.title,
-        )
-
-    return redirect(f'/shows/{show_id}')
+    return redirect(f"/shows/{show_id}")
 
 
 def get_or_create_show(listing, title=None):
@@ -64,22 +51,16 @@ def get_or_create_show(listing, title=None):
     this function only returns the existing show's object.
     """
     #  check if show exists in DB
-    used_ids = [int(i) for i in Show.objects.values_list('id', flat=True)]
 
     if title:
-        listing['showName'] = title
-
-    usable_ids = [i for i in range(1000) if i not in used_ids]
+        listing["showName"] = title
 
     try:
-        show = Show.objects.get(title=listing['showName'])
+        show = Show.objects.get(title=listing["showName"])
         print(f"{listing['showName']} already in DB.")
-    except nstv_fe2.models.Show.DoesNotExist:
+    except Show.DoesNotExist:
         # create new Show
-        show = Show.objects.create(
-            title=listing['showName'],
-            id=usable_ids[0]
-        )
+        show = Show.objects.create(title=listing["showName"])
         print(f"{listing['showName']} added to DB.")
 
     return show
@@ -95,22 +76,20 @@ def search_channels(start_channel, end_channel, start_date, end_date):
     to end_channel and returns the accompanying JSON response object.
     """
     if start_channel > end_channel:
-        print('The search has a start channel that\'s higher than the end_channel.')
-        print('This doesn\'t make sense.  Check your inputs.')
-        print(f'Start channel: {start_channel}')
-        print(f'End channel: {end_channel}')
+        print("The search has a start channel that's higher than the end_channel.")
+        print("This doesn't make sense.  Check your inputs.")
+        print(f"Start channel: {start_channel}")
+        print(f"End channel: {end_channel}")
         raise ValueError()
 
-    print('\nSearching channels for TV showing details..\n')
-    url = f'https://tvtv.us/tvm/t/tv/v4/lineups/95197D/listings/grid?detail='
-    url += '%27brief%27&'
-    url += f'start={start_date}T04:00:00.000'
-    url += 'Z&'
-    url += f'end={end_date}T03:59:00.000'
-    url += f'Z&startchan={start_channel}&endchan={end_channel}'
-    r = requests.get(
-        url
-    )
+    print("\nSearching channels for TV showing details..\n")
+    url = f"https://tvtv.us/tvm/t/tv/v4/lineups/95197D/listings/grid?detail="
+    url += "%27brief%27&"
+    url += f"start={start_date}T04:00:00.000"
+    url += "Z&"
+    url += f"end={end_date}T03:59:00.000"
+    url += f"Z&startchan={start_channel}&endchan={end_channel}"
+    r = requests.get(url)
     assert r.status_code == 200
     return r.json()
 
@@ -125,17 +104,15 @@ def get_or_create_episode(listing, show):
     If an object matching the episode's title already exists,
     this function only returns the existing episode's object.
     """
-    used_ids = [int(i) for i in Episode.objects.values_list('id', flat=True)]
-
-    usable_ids = [i for i in range(1000) if i not in used_ids]
-
     try:
-        episode = Episode.objects.get(title=listing['episodeTitle'])
+        episode = Episode.objects.get(title=listing["episodeTitle"])
     except Episode.DoesNotExist:
         episode = Episode.objects.create(
-            id=usable_ids[0],
-            title=listing['episodeTitle'],
-            original_air_date=listing['listDateTime'].replace('“', '').replace('”', '').split()[0],
+            title=listing["episodeTitle"],
+            original_air_date=listing["listDateTime"]
+            .replace("“", "")
+            .replace("”", "")
+            .split()[0],
             show=show,
         )
 
@@ -151,13 +128,13 @@ def parse_channel_search_response(response):
     Parses the JSON response returned from a search
     into the appropriate episode or show models.
     """
-    for i in response:
-        print('~~~')
-        listings = i['listings']
+    for i in response:  # TODO: use a real variable name
+        print("~~~")
+        listings = i["listings"]
         shows = []
         episodes = []
         for listing in listings:
-            if listing['showName'] == 'Paid Program':
+            if listing["showName"] == "Paid Program":
                 continue
             show = get_or_create_show(listing)
             if show not in shows:
@@ -168,10 +145,14 @@ def parse_channel_search_response(response):
 
 
 def update_db():
-    start_date = (datetime.datetime.now() - datetime.timedelta(10)).strftime('%Y-%m-%d')
-    end_date = datetime.datetime.now().strftime('%Y-%m-%d')
+    start_date = (datetime.datetime.now() - datetime.timedelta(10)).strftime("%Y-%m-%d")
+    end_date = datetime.datetime.now().strftime("%Y-%m-%d")
 
+    #  TODO: make channels variable, run this through a util
     json_response = search_channels(
-        start_channel=44, end_channel=47,
-        start_date=start_date, end_date=end_date)
+        start_channel=44,
+        end_channel=47,
+        start_date=start_date,
+        end_date=end_date
+    )
     parse_channel_search_response(json_response)

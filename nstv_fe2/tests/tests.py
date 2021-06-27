@@ -76,10 +76,11 @@ class NZBGeekTestCase(TestCase):
             episode_number=episode_number,
         )
 
-    def test_get_nzb_no_results_found(self):
+    def test_get_nzb_no_results_found_raises_error(self):
         show = Show.objects.get(id=1)
         episode_title = 'This Episode Did Not Exist'
-        self.nzbg.get_nzb(show=show, episode_title=episode_title)
+        with self.assertRaises(ValueError):
+            self.nzbg.get_nzb(show=show, episode_title=episode_title)
 
     def test_get_nzb_no_season_or_episode_number_raises_error(self):
         show = Show.objects.get(id=1)
@@ -91,9 +92,11 @@ class ShowsIndexViewTests(TestCase):
     def setUp(self):
         self.nzbg = NZBGeek()
         self.nzbg.login()
-        Show.objects.create(id=1, title="Seinfeld", gid=79169)
+        Show.objects.create(
+            title="Seinfeld",
+            gid=79169,
+        )
         Episode.objects.create(
-            id=1,
             title="The Parking Garage",
             season=3,
             number=6,
@@ -175,7 +178,6 @@ class SearchChannelsTests(TestCase):
         )
         self.start_date = (datetime.datetime.now() - datetime.timedelta(1)).strftime('%Y-%m-%d')
         self.end_date = datetime.datetime.now().strftime('%Y-%m-%d')
-
 
     def test_search_channels(self):
         json_response = search_channels(
