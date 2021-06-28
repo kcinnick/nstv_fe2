@@ -10,6 +10,6 @@ class Episode(models.Model):
     title = models.TextField(unique=True)
     season = models.IntegerField(null=True)
     number = models.IntegerField(null=True)
-    original_air_date = models.DateField()
+    original_air_date = models.DateField(null=True)
 
     show = models.ForeignKey("Show", on_delete=models.CASCADE, null=True)

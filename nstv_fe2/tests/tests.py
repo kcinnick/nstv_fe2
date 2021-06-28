@@ -1,11 +1,14 @@
 import datetime
 import os
 
+from bs4 import BeautifulSoup
 from django.test import TestCase, SimpleTestCase
 
+import nstv_fe2.tvtv_scraper
 from nstv_fe2.models import Episode, Show
-from nstv_fe2.nzbg import NZBGeek
-from nstv_fe2.tvtv_scraper import search_channels  # TODO: this shouldn't be in .views
+from nstv_fe2.nzbg import NZBGeek, SearchResult
+from nstv_fe2.tvtv_scraper import search_channels, parse_channel_search_response, \
+    update_db
 
 
 class EpisodeTestCase(TestCase):
@@ -87,6 +90,24 @@ class NZBGeekTestCase(TestCase):
         with self.assertRaises(AttributeError):
             self.nzbg.get_nzb(show=show, episode_title=False, )
 
+    def test_nzbgeek_search_result(self):
+        url = self.nzbg._build_search_url(
+            show=Show.objects.get(title='Seinfeld'),
+            episode_number=6,
+            season_number=3,
+        )
+        print(f"\nRequesting {url}")
+        r = self.nzbg.session.get(url)
+
+        soup = BeautifulSoup(r.content, "html.parser")
+        results = soup.find_all("table", class_="releases")
+        parsed_result = [SearchResult(i) for i in results][0]
+        self.assertIn(
+            'Seinfeld', parsed_result.title
+        )
+        self.assertIn('S03E06', parsed_result.title)
+        self.assertIn('Seinfeld', str(parsed_result))
+
 
 class ShowsIndexViewTests(TestCase):
     def setUp(self):
@@ -166,7 +187,7 @@ class DownloadEpisodeTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
 
-class SearchChannelsTests(TestCase):
+class TvtvScraperSearchChannelsTests(TestCase):
     def setUp(self):
         Show.objects.create(
             id=1,
@@ -195,3 +216,38 @@ class SearchChannelsTests(TestCase):
                 start_date='2021-05-01',
                 end_date='2021-05-02',
             )
+
+
+class TvtvScraperParseChannelSearchResponseTests(TestCase):
+    def setUp(self):
+        start_date = (datetime.datetime.now() - datetime.timedelta(1)).strftime('%Y-%m-%d')
+        end_date = datetime.datetime.now().strftime('%Y-%m-%d')
+        self.json_response = search_channels(
+            start_channel=2, end_channel=29,
+            start_date=start_date, end_date=end_date)
+
+    def test_parse_channel_search_response(self):
+        parse_channel_search_response(self.json_response)
+
+
+class TvtvScraperUpdateDbTests(TestCase):
+    def setUp(self) -> None:
+        pass
+
+    def test_update_db(self):
+        update_db()
+        self.assertGreater(len(Show.objects.all()), 0)
+        show = Show.objects.first()  # assert a show was created
+        self.assertGreater(
+            Episode.objects.count(),
+            0
+        )  # assert the show has episodes
+        #  assert update_db saved 1 or more episodes of the first show to the db
+        show_episodes = Episode.objects.filter(
+            show=show
+        )
+
+        self.assertGreater(
+            show_episodes.count(),
+            0
+        )

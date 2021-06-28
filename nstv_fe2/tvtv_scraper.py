@@ -34,31 +34,25 @@ def search_channels(start_channel, end_channel, start_date, end_date):
 
 def parse_channel_search_response(response):
     """
-    db_session:  sqlalchemy.orm.Session object
     response:  JSON object containing a list of episodes returned by a call to search_channels
 
     Parses the JSON response returned from a search
     into the appropriate episode or show models.
     """
-    for i in response:  # TODO: use a real variable name
-        #  TODO:  write test
-        print("~~~")
-        listings = i["listings"]
-        shows = []
-        episodes = []
+    for channel_listing_response in response:
+        listings = channel_listing_response["listings"]
         for listing in listings:
             if listing["showName"] == "Paid Program":
                 continue
-            show = get_or_create_show(listing)
-            if show not in shows:
-                shows.append(show)
-            episode = get_or_create_episode(listing, show)
-            if episode not in episodes:
-                episodes.append(episode)
+            show = Show.objects.get_or_create(title=listing['showName'])[0]
+            if len(listing['episodeTitle'].strip()) > 0:
+                Episode.objects.get_or_create(
+                    title=listing["episodeTitle"],
+                    show_id=show.id,
+                )
 
 
 def update_db():
-    #  TODO:  write test
     start_date = (datetime.datetime.now() - datetime.timedelta(10)).strftime("%Y-%m-%d")
     end_date = datetime.datetime.now().strftime("%Y-%m-%d")
 
@@ -70,53 +64,3 @@ def update_db():
         end_date=end_date
     )
     parse_channel_search_response(json_response)
-
-
-def get_or_create_show(listing, title=None):
-    """
-    listing:  JSON object representing an episode listing returned by nstv.search_channels
-
-    Creates and returns new Show object for show indicated in an
-    episode listing and commits the object against the database.
-    If an object matching the show's title already exists,
-    this function only returns the existing show's object.
-    """
-    #  check if show exists in DB
-    #  TODO:  write test
-    if title:
-        listing["showName"] = title
-
-    try:
-        show = Show.objects.get(title=listing["showName"])
-        print(f"{listing['showName']} already in DB.")
-    except Show.DoesNotExist:
-        # create new Show
-        show = Show.objects.create(title=listing["showName"])
-        print(f"{listing['showName']} added to DB.")
-
-    return show
-
-
-def get_or_create_episode(listing, show):
-    """
-    listing:  JSON object representing an episode listing returned by nstv.search_channels
-
-    Creates and returns new Episode object for episode indicated in a
-    listing and commits the object against the database.
-    If an object matching the episode's title already exists,
-    this function only returns the existing episode's object.
-    """
-    #  TODO:  write test
-    try:
-        episode = Episode.objects.get(title=listing["episodeTitle"])
-    except Episode.DoesNotExist:
-        episode = Episode.objects.create(
-            title=listing["episodeTitle"],
-            original_air_date=listing["listDateTime"]
-                .replace("“", "")
-                .replace("”", "")
-                .split()[0],
-            show=show,
-        )
-
-    return episode
