@@ -1,6 +1,7 @@
 import datetime
 
 import requests
+from django.db import IntegrityError
 
 from .models import Episode, Show
 
@@ -45,11 +46,19 @@ def parse_channel_search_response(response):
             if listing["showName"] == "Paid Program":
                 continue
             show = Show.objects.get_or_create(title=listing['showName'])[0]
-            if len(listing['episodeTitle'].strip()) > 0:
+            if len(listing['episodeTitle'].strip()):
+                title = listing['episodeTitle']
+            else:
+                title = listing['episodeNumber']
+            try:
                 Episode.objects.get_or_create(
-                    title=listing["episodeTitle"],
+                    title=title,
                     show_id=show.id,
                 )
+            except IntegrityError:
+                continue
+                #  TODO: handle these more properly.
+                #  they occur a lot on local news programs.
 
 
 def update_db():

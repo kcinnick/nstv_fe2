@@ -1,2 +1,4 @@
 /venv/
 /nstv_fe2/migrations/
+/*.html
+/db.sqlite3

@@ -2,9 +2,8 @@ import datetime
 import os
 
 from bs4 import BeautifulSoup
-from django.test import TestCase, SimpleTestCase
+from django.test import TestCase
 
-import nstv_fe2.tvtv_scraper
 from nstv_fe2.models import Episode, Show
 from nstv_fe2.nzbg import NZBGeek, SearchResult
 from nstv_fe2.tvtv_scraper import search_channels, parse_channel_search_response, \
@@ -236,18 +235,12 @@ class TvtvScraperUpdateDbTests(TestCase):
 
     def test_update_db(self):
         update_db()
-        self.assertGreater(len(Show.objects.all()), 0)
-        show = Show.objects.first()  # assert a show was created
         self.assertGreater(
-            Episode.objects.count(),
+            Show.objects.count(),
             0
-        )  # assert the show has episodes
-        #  assert update_db saved 1 or more episodes of the first show to the db
-        show_episodes = Episode.objects.filter(
-            show=show
-        )
-
+        )  #  assert show was downloaded
+        show = Show.objects.first()
         self.assertGreater(
-            show_episodes.count(),
+            Episode.objects.filter(show=show).count(),
             0
-        )
+        )  # ..and that it has at least 1 episode

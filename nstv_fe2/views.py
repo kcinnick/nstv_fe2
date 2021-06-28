@@ -1,13 +1,37 @@
+import os
+
 from django.shortcuts import redirect, render
+from plexapi.server import PlexServer
 
 from .models import Episode, Show
 from .nzbg import NZBGeek
 
-
 #  TODO: add page for updating DB
+from .tvtv_scraper import update_db
+
+
+def get_seinfeld_episodes():
+    baseurl = 'http://localhost:32400'
+    token = os.getenv('PLEX_TOKEN')
+    plex = PlexServer(baseurl, token)
+    seinfeld = plex.library.section('TV Shows').get('Seinfeld')
+    for episode in seinfeld.episodes():
+        try:
+            episode_model = Episode.objects.get(title=episode.title)
+        except Episode.DoesNotExist:
+            episode_model = Episode.objects.create(
+                    title=episode.title,
+                )
+            episode_model.downloaded = False
+        else:
+            episode_model.downloaded = True
+        episode_model.save()
+
 
 def index(request):
+    update_db()
     shows = Show.objects.all()
+    get_seinfeld_episodes()
     return render(request, context={"shows": shows}, template_name="index.html")
 
 

@@ -13,3 +13,5 @@ class Episode(models.Model):
     original_air_date = models.DateField(null=True)
 
     show = models.ForeignKey("Show", on_delete=models.CASCADE, null=True)
+
+    downloaded = models.BooleanField(default=False)

@@ -7,9 +7,16 @@
 <center><h1>{{ show.title }}</h1></center>
 <body>
 <table>
+<tr>
+    <th>Episode Title</th>
+    <th>Download via NZBGeek</th>
+    <th>Downloaded</th>
+</tr>
 {% for episode in show_episodes %}
     <tr>
-        <td>{{ episode.title }} <a href="/shows/{{ show.id }}/title/{{ episode.title }}/nzbgeek">Download via NZBGeek</a></td>
+        <td>{{ episode.title }}</td>
+        <td><a href="/shows/{{ show.id }}/title/{{ episode.title }}/nzbgeek">Download via NZBGeek</a></td>
+        <td>{{ episode.downloaded }}</td>
     </tr>
 {% endfor %}
 </table>
