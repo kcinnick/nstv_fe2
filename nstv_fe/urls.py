@@ -36,5 +36,15 @@ urlpatterns = [
         "shows/<show_id>/title/<episode_title>/nzbgeek",
         views.download_episode,
         name='nzbdownload',
+    ),
+    path(
+        "update_database",
+        views.search_and_update_show_and_episode_tables,
+        name='update_database',
+    ),
+    path(
+        "update_downloaded_records/<show_id>",
+        views.update_downloaded_record_for_episodes_in_show,
+        name='update_downloaded_record',
     )
 ]

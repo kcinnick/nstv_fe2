@@ -10,28 +10,30 @@ from .nzbg import NZBGeek
 from .tvtv_scraper import update_db
 
 
-def get_seinfeld_episodes():
-    baseurl = 'http://localhost:32400'
+def update_downloaded_record_for_episodes_in_show(request, show_id):
+    django_show_title = Show.objects.get(id=show_id).title
+    base_url = 'http://localhost:32400'
     token = os.getenv('PLEX_TOKEN')
-    plex = PlexServer(baseurl, token)
-    seinfeld = plex.library.section('TV Shows').get('Seinfeld')
-    for episode in seinfeld.episodes():
+    plex = PlexServer(base_url, token)
+    plex_show = plex.library.section('TV Shows').get(django_show_title)
+    for episode in plex_show.episodes():
         try:
             episode_model = Episode.objects.get(title=episode.title)
+            episode_model.downloaded = True
+            episode_model.save()
         except Episode.DoesNotExist:
             episode_model = Episode.objects.create(
-                    title=episode.title,
-                )
+                title=episode.title,
+            )
             episode_model.downloaded = False
-        else:
-            episode_model.downloaded = True
-        episode_model.save()
+            episode_model.save()
+
+    return redirect(f'/shows/{show_id}')
 
 
 def index(request):
-    update_db()
+    # update_db()
     shows = Show.objects.all()
-    get_seinfeld_episodes()
     return render(request, context={"shows": shows}, template_name="index.html")
 
 
@@ -59,3 +61,11 @@ def download_episode(
     nzb_geek.get_nzb(show=parent_show, episode_title=episode_title)
 
     return redirect(f"/shows/{show_id}")
+
+
+def search_and_update_show_and_episode_tables(
+        request
+):
+    update_db()
+
+    return redirect("/")

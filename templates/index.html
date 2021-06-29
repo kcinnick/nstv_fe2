@@ -1,4 +1,35 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.esm.min.js" integrity="sha384-pXJyILVSfKOB4xKYbM0dJr+oH4iVvo4s7mWbiTHe6LSxd38hl16DMj6AOJyy2Wcz" crossorigin="anonymous"></script>
+
 <h1> NSTV Database </h1>
+
+<nav role="navigation">
+    <ol class="nav-links">
+        <li class="">
+            <a href="/">
+                <div>
+                    Home
+                </div>
+            </a>
+        </li>
+        <li>
+            <a href="/update_database">
+                <div>
+                    Update database with new episode listings
+                </div>
+            </a>
+        </li>
+        <li>
+            <a href="/update_downloaded_records/{{ show.id }}">
+                <div>
+                    Update downloaded record
+                </div>
+            </a>
+        </li>
+    </ol>
+</nav>
 
 <table>
 {% for show in shows %}

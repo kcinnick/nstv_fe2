@@ -238,7 +238,7 @@ class TvtvScraperUpdateDbTests(TestCase):
         self.assertGreater(
             Show.objects.count(),
             0
-        )  #  assert show was downloaded
+        )  # assert show was downloaded
         show = Show.objects.first()
         self.assertGreater(
             Episode.objects.filter(show=show).count(),
