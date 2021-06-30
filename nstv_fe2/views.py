@@ -1,5 +1,6 @@
 import os
 
+import plexapi.exceptions
 from django.shortcuts import redirect, render
 from plexapi.server import PlexServer
 
@@ -14,19 +15,17 @@ def update_downloaded_record_for_episodes_in_show(request, show_id):
     django_show_title = Show.objects.get(id=show_id).title
     base_url = 'http://localhost:32400'
     token = os.getenv('PLEX_TOKEN')
-    plex = PlexServer(base_url, token)
+    try:
+        plex = PlexServer(base_url, token)
+    except plexapi.exceptions.Unauthorized:
+        raise PermissionError(
+            '401 unauthorized for Plex. Did you set the PLEX_TOKEN environment variable (and is it valid)?'
+        )
     plex_show = plex.library.section('TV Shows').get(django_show_title)
     for episode in plex_show.episodes():
-        try:
-            episode_model = Episode.objects.get(title=episode.title)
-            episode_model.downloaded = True
-            episode_model.save()
-        except Episode.DoesNotExist:
-            episode_model = Episode.objects.create(
-                title=episode.title,
-            )
-            episode_model.downloaded = False
-            episode_model.save()
+        episode_model = Episode.objects.get(title=episode.title)
+        episode_model.downloaded = True
+        episode_model.save()
 
     return redirect(f'/shows/{show_id}')
 
@@ -66,6 +65,7 @@ def download_episode(
 def search_and_update_show_and_episode_tables(
         request
 ):
+    #  TODO:
     update_db()
 
     return redirect("/")

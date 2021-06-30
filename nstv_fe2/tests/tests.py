@@ -8,6 +8,7 @@ from nstv_fe2.models import Episode, Show
 from nstv_fe2.nzbg import NZBGeek, SearchResult
 from nstv_fe2.tvtv_scraper import search_channels, parse_channel_search_response, \
     update_db
+from nstv_fe2.views import update_downloaded_record_for_episodes_in_show
 
 
 class EpisodeTestCase(TestCase):
@@ -162,6 +163,10 @@ class ShowViewTests(TestCase):
         self.assertEqual(response.context['show'], show)
         self.assertQuerysetEqual(response.context['show_episodes'], show_episodes)
 
+    def test_update_downloaded_record_for_episodes_in_show(self):
+        return
+        #  TODO: finish this test
+
 
 class DownloadEpisodeTests(TestCase):
     def setUp(self):
@@ -227,6 +232,7 @@ class TvtvScraperParseChannelSearchResponseTests(TestCase):
 
     def test_parse_channel_search_response(self):
         parse_channel_search_response(self.json_response)
+        #  this isn't a good test
 
 
 class TvtvScraperUpdateDbTests(TestCase):
@@ -244,3 +250,20 @@ class TvtvScraperUpdateDbTests(TestCase):
             Episode.objects.filter(show=show).count(),
             0
         )  # ..and that it has at least 1 episode
+
+
+class UpdateDownloadedRecordTests(TestCase):
+    def setUp(self) -> None:
+        Show.objects.create(
+            id=1,
+            title="Whose Line is it Anyway?",
+            gid=79169
+        )
+        Episode.objects.create(
+            show_id=1,
+            title='Archie Hahn, Josie Lawrence, Paul Merton, John Sessions'
+        )
+
+    def test_main(self):
+        update_downloaded_record_for_episodes_in_show(request=None, show_id=1)
+        #  this isn't a good test
