@@ -9,6 +9,12 @@ from bs4 import BeautifulSoup
 
 
 class SearchResult:
+    """
+    A programmatic representation of the search result listings returned by
+    NZBGeek's web interface.  Unsure if it's really needed, should TODO some
+    cleanup on it at some point.
+    """
+
     def __init__(self, result_table):
         self.title = result_table.find("a", class_="releases_title").text.strip()
         self.category = result_table.find(
@@ -31,6 +37,10 @@ class NZBGeek:
         self.logged_in = False
 
     def login(self):
+        """
+        Checks if user is already logged, and if not, attempts a login.
+        :return:
+        """
         # get nzbgeek csrf token
         if self.logged_in:
             print("User already logged in.\n")
@@ -58,8 +68,17 @@ class NZBGeek:
         return
 
     def _build_search_url(
-        self, show, season_number, episode_number, episode_title=None
+            self, show, season_number, episode_number, episode_title=None
     ):
+        """
+        Builds a valid search URL depending on whether or not the episode is being
+        searched by a season/episode number or episode title.
+        :param show: .models.Show object
+        :param season_number: int, the season the episode belongs to
+        :param episode_number: int, the episode's number
+        :param episode_title: str, the episode's title
+        :return:
+        """
         if season_number and episode_number:
             print(f"\nSearching for {show.title} S{season_number} E{episode_number}")
             url = f"https://nzbgeek.info/geekseek.php?tvid={show.gid}"
@@ -80,7 +99,7 @@ class NZBGeek:
         return url
 
     def get_nzb(
-        self, show, season_number=None, episode_number=None, episode_title=None, hd=True
+            self, show, season_number=None, episode_number=None, episode_title=None, hd=True
     ):
         """
         Searches and downloads the first result on NZBGeek for the given
@@ -110,7 +129,7 @@ class NZBGeek:
             results = [i for i in results if i.category == "TV > HD"]
 
         if not len(results):
-            raise ValueError("No results found.")
+            raise ValueError("No results found.")  # TODO: this should be more delicately handled
 
         webbrowser.open(results[0].download_url)
 
@@ -122,6 +141,7 @@ class NZBGeek:
         print("\nNZB file downloaded.")
 
         for file in nzb_files:
+            #  rename and move the files from Downloads to nstv_fe/nzbs/*
             file_name = file.split("/")[-1]
             dest_path = f"/home/nick/PycharmProjects/nstv_fe/nzbs/{file_name}"
             os.rename(file, f"/home/nick/PycharmProjects/nstv_fe/nzbs/{file_name}")

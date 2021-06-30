@@ -8,8 +8,10 @@ from .models import Episode, Show
 
 def search_channels(start_channel, end_channel, start_date, end_date):
     """
-    start_channel: int
-    end_channel: int
+    :param start_channel: int
+    :param end_channel: int
+    :param start_date: str, YYYY-MM-DD format
+    :param end_date: str, YYYY-MM-DD format
 
     Executes a search for the supplied range of channels from start_channel
     to end_channel and returns the accompanying JSON response object.
@@ -35,7 +37,7 @@ def search_channels(start_channel, end_channel, start_date, end_date):
 
 def parse_channel_search_response(response):
     """
-    response:  JSON object containing a list of episodes returned by a call to search_channels
+    :param response:  dict, representation of JSON object containing a list of episodes returned by a call to search_channels
 
     Parses the JSON response returned from a search
     into the appropriate episode or show models.
@@ -62,6 +64,13 @@ def parse_channel_search_response(response):
 
 
 def update_db():
+    """
+    Searches for shows and episodes that aired during the range in the given datetimes,
+    and parses the search result into Show and Episode objects for further use in the Django app.
+    TODO: I don't love how this function is mainly calling other functions. should be more modular.
+    TODO: maybe just create a `main` function and call everything from there.
+    :return:
+    """
     start_date = (datetime.datetime.now() - datetime.timedelta(10)).strftime("%Y-%m-%d")
     end_date = datetime.datetime.now().strftime("%Y-%m-%d")
 

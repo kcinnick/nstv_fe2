@@ -12,6 +12,12 @@ from .tvtv_scraper import update_db
 
 
 def update_downloaded_record_for_episodes_in_show(request, show_id):
+    """
+
+    :param request:
+    :param show_id: ID of .models.Show object to update
+    :return:
+    """
     django_show_title = Show.objects.get(id=show_id).title
     base_url = 'http://localhost:32400'
     token = os.getenv('PLEX_TOKEN')
@@ -65,7 +71,7 @@ def download_episode(
 def search_and_update_show_and_episode_tables(
         request
 ):
-    #  TODO:
+    #  TODO: seems wrong to have a function just for one line of code
     update_db()
 
     return redirect("/")
