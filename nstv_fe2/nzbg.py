@@ -144,7 +144,7 @@ class NZBGeek:
             #  rename and move the files from Downloads to nstv_fe/nzbs/*
             file_name = file.split("/")[-1]
             dest_path = f"/home/nick/PycharmProjects/nstv_fe/nzbs/{file_name}"
-            os.rename(file, f"/home/nick/PycharmProjects/nstv_fe/nzbs/{file_name}")
+            os.rename(file, f"/home/nick/PycharmProjects/nstv_fe/nstv_fe2/finished/{file_name}")
             print(f"{file_name} moved to {dest_path}.")
 
         return

@@ -43,8 +43,8 @@ urlpatterns = [
         name='update_database',
     ),
     path(
-        "update_downloaded_records/<show_id>",
+        "update_downloaded_record_for_episodes_in_show/<show_id>",
         views.update_downloaded_record_for_episodes_in_show,
-        name='update_downloaded_record',
+        name='update_downloaded_records',
     )
 ]

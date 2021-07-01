@@ -6,9 +6,7 @@ from django.test import TestCase
 
 from nstv_fe2.models import Episode, Show
 from nstv_fe2.nzbg import NZBGeek, SearchResult
-from nstv_fe2.tvtv_scraper import search_channels, parse_channel_search_response, \
-    update_db
-from nstv_fe2.views import update_downloaded_record_for_episodes_in_show
+from nstv_fe2.tvtv_scraper import search_channel_listings, upload_channel_search_response
 
 
 class EpisodeTestCase(TestCase):
@@ -202,7 +200,7 @@ class TvtvScraperSearchChannelsTests(TestCase):
         self.end_date = datetime.datetime.now().strftime('%Y-%m-%d')
 
     def test_search_channels(self):
-        json_response = search_channels(
+        json_response = search_channel_listings(
             start_channel=2, end_channel=29,
             start_date=self.start_date, end_date=self.end_date)
         expected_channel_list = [2, 3, 4, 5, 6, 7, 8, 9, 11, 15, 16,
@@ -214,7 +212,7 @@ class TvtvScraperSearchChannelsTests(TestCase):
 
     def test_assert_error_is_raised_on_invalid_search(self):
         with self.assertRaises(ValueError):
-            search_channels(
+            search_channel_listings(
                 start_channel=44,
                 end_channel=12,
                 start_date='2021-05-01',
@@ -226,21 +224,25 @@ class TvtvScraperParseChannelSearchResponseTests(TestCase):
     def setUp(self):
         start_date = (datetime.datetime.now() - datetime.timedelta(1)).strftime('%Y-%m-%d')
         end_date = datetime.datetime.now().strftime('%Y-%m-%d')
-        self.json_response = search_channels(
+        self.json_response = search_channel_listings(
             start_channel=2, end_channel=29,
             start_date=start_date, end_date=end_date)
 
     def test_parse_channel_search_response(self):
-        parse_channel_search_response(self.json_response)
-        #  this isn't a good test
+        upload_channel_search_response(self.json_response)
+        #  TODO: this isn't a good test
 
 
 class TvtvScraperUpdateDbTests(TestCase):
     def setUp(self) -> None:
-        pass
+        start_date = (datetime.datetime.now() - datetime.timedelta(1)).strftime('%Y-%m-%d')
+        end_date = datetime.datetime.now().strftime('%Y-%m-%d')
+        self.json_response = search_channel_listings(
+            start_channel=2, end_channel=29,
+            start_date=start_date, end_date=end_date)
 
     def test_update_db(self):
-        update_db()
+        upload_channel_search_response(self.json_response)
         self.assertGreater(
             Show.objects.count(),
             0
@@ -261,9 +263,12 @@ class UpdateDownloadedRecordTests(TestCase):
         )
         Episode.objects.create(
             show_id=1,
-            title='Archie Hahn, Josie Lawrence, Paul Merton, John Sessions'
+            title='Archie Hahn, Josie Lawrence, Paul Merton, John Sessions',
+            downloaded=False,
         )
 
     def test_main(self):
-        update_downloaded_record_for_episodes_in_show(request=None, show_id=1)
-        #  this isn't a good test
+        self.client.get(
+            'http://localhost:8000/update_downloaded_record_for_episodes_in_show/1'
+        )
+        self.assertEqual(Episode.objects.first().downloaded, True)

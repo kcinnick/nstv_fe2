@@ -8,7 +8,7 @@ from .models import Episode, Show
 from .nzbg import NZBGeek
 
 #  TODO: add page for updating DB
-from .tvtv_scraper import update_db
+from .tvtv_scraper import main as run_tvtv_scraper
 
 
 def update_downloaded_record_for_episodes_in_show(request, show_id):
@@ -29,11 +29,18 @@ def update_downloaded_record_for_episodes_in_show(request, show_id):
         )
     plex_show = plex.library.section('TV Shows').get(django_show_title)
     for episode in plex_show.episodes():
-        episode_model = Episode.objects.get(title=episode.title)
-        episode_model.downloaded = True
-        episode_model.save()
+        try:
+            episode_model = Episode.objects.get(title=episode.title)
+            episode_model.downloaded = True
+            episode_model.save()
+        except Episode.DoesNotExist:
+            episode_model = Episode.objects.create(
+                title=episode.title,
+            )
+            episode_model.downloaded = True
+            episode_model.save()
 
-    return redirect(f'/shows/{show_id}')
+    return redirect(f'/shows/{show_id}?updated=True')
 
 
 def index(request):
@@ -72,6 +79,5 @@ def search_and_update_show_and_episode_tables(
         request
 ):
     #  TODO: seems wrong to have a function just for one line of code
-    update_db()
-
+    run_tvtv_scraper()
     return redirect("/")

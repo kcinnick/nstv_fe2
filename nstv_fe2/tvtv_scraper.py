@@ -6,7 +6,7 @@ from django.db import IntegrityError
 from .models import Episode, Show
 
 
-def search_channels(start_channel, end_channel, start_date, end_date):
+def search_channel_listings(start_channel, end_channel, start_date, end_date):
     """
     :param start_channel: int
     :param end_channel: int
@@ -35,12 +35,11 @@ def search_channels(start_channel, end_channel, start_date, end_date):
     return r.json()
 
 
-def parse_channel_search_response(response):
+def upload_channel_search_response(response):
     """
     :param response:  dict, representation of JSON object containing a list of episodes returned by a call to search_channels
 
-    Parses the JSON response returned from a search
-    into the appropriate episode or show models.
+    Parses the JSON response returned from a search into the appropriate episode or show models.
     """
     for channel_listing_response in response:
         listings = channel_listing_response["listings"]
@@ -56,6 +55,8 @@ def parse_channel_search_response(response):
                 Episode.objects.get_or_create(
                     title=title,
                     show_id=show.id,
+                    season=listing['seasonNumber'],
+                    number=listing['seasonSeqNo'],
                 )
             except IntegrityError:
                 continue
@@ -63,7 +64,7 @@ def parse_channel_search_response(response):
                 #  they occur a lot on local news programs.
 
 
-def update_db():
+def main(start_date=None, end_date=None):
     """
     Searches for shows and episodes that aired during the range in the given datetimes,
     and parses the search result into Show and Episode objects for further use in the Django app.
@@ -71,14 +72,21 @@ def update_db():
     TODO: maybe just create a `main` function and call everything from there.
     :return:
     """
-    start_date = (datetime.datetime.now() - datetime.timedelta(10)).strftime("%Y-%m-%d")
-    end_date = datetime.datetime.now().strftime("%Y-%m-%d")
-
     #  TODO: make channels variable, run this through a util
-    json_response = search_channels(
+    if not start_date:
+        start_date = (datetime.datetime.now() - datetime.timedelta(10)).strftime("%Y-%m-%d")
+        end_date = datetime.datetime.now().strftime("%Y-%m-%d")
+
+    json_response = search_channel_listings(
         start_channel=45,
         end_channel=47,
         start_date=start_date,
         end_date=end_date
     )
-    parse_channel_search_response(json_response)
+    upload_channel_search_response(json_response)
+
+
+if __name__ == '__main__':
+    start_date = (datetime.datetime.now() - datetime.timedelta(10)).strftime("%Y-%m-%d")
+    end_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    main(start_date, end_date)

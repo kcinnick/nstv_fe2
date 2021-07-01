@@ -12,17 +12,21 @@
 <center><h1>{{ show.title }}</h1></center>
 <body>
 
-<a href="/update_downloaded_records/{{ show.id }}">Update downloaded records.</a>
+<a href="/update_downloaded_record_for_episodes_in_show/{{ show.id }}">Update downloaded records.</a>
 
 <table>
 <tr>
     <th>Episode Title</th>
+    <th>Season Number</th>
+    <th>Episode Number</th>
     <th>Download via NZBGeek</th>
     <th>Downloaded</th>
 </tr>
 {% for episode in show_episodes %}
     <tr>
         <td>{{ episode.title }}</td>
+        <td>{{ episode.season }}</td>
+        <td>{{ episode.number }}</td>
         <td><a href="/shows/{{ show.id }}/title/{{ episode.title }}/nzbgeek">Download via NZBGeek</a></td>
         <td>{{ episode.downloaded }}</td>
     </tr>
