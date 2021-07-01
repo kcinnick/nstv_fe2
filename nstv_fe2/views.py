@@ -30,8 +30,12 @@ def update_downloaded_record_for_episodes_in_show(request, show_id):
     plex_show = plex.library.section('TV Shows').get(django_show_title)
     for episode in plex_show.episodes():
         try:
+            season = episode.parentTitle.split()[-1]
+            number = episode.index
             episode_model = Episode.objects.get(title=episode.title)
             episode_model.downloaded = True
+            episode_model.season = season
+            episode_model.number = number
             episode_model.save()
         except Episode.DoesNotExist:
             episode_model = Episode.objects.create(
@@ -44,7 +48,6 @@ def update_downloaded_record_for_episodes_in_show(request, show_id):
 
 
 def index(request):
-    # update_db()
     shows = Show.objects.all()
     return render(request, context={"shows": shows}, template_name="index.html")
 
