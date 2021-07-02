@@ -1,5 +1,5 @@
 import os
-
+import imdb
 import plexapi.exceptions
 from django.shortcuts import redirect, render
 from plexapi.server import PlexServer
@@ -29,20 +29,18 @@ def update_downloaded_record_for_episodes_in_show(request, show_id):
         )
     plex_show = plex.library.section('TV Shows').get(django_show_title)
     for episode in plex_show.episodes():
+        season = episode.parentTitle.split()[-1]
+        number = episode.index
         try:
-            season = episode.parentTitle.split()[-1]
-            number = episode.index
             episode_model = Episode.objects.get(title=episode.title)
-            episode_model.downloaded = True
-            episode_model.season = season
-            episode_model.number = number
-            episode_model.save()
         except Episode.DoesNotExist:
             episode_model = Episode.objects.create(
                 title=episode.title,
             )
-            episode_model.downloaded = True
-            episode_model.save()
+        episode_model.downloaded = True
+        episode_model.season = season
+        episode_model.number = number
+        episode_model.save()
 
     return redirect(f'/shows/{show_id}?updated=True')
 
@@ -83,4 +81,35 @@ def search_and_update_show_and_episode_tables(
 ):
     #  TODO: seems wrong to have a function just for one line of code
     run_tvtv_scraper()
+    return redirect("/")
+
+
+def get_outstanding_season_episode_numbers(
+        request
+):
+    ia = imdb.IMDb()
+    episodes_without_season_episode_numbers = Episode.objects.filter(season=None)
+    print(f'{episodes_without_season_episode_numbers.count()} episodes found.')
+    for episode in episodes_without_season_episode_numbers:
+        print('~~~')
+        print(f'Searching for {episode.title}')
+        try:
+            results = ia.search_episode(episode.title)
+        except imdb._exceptions.IMDbParserError:
+            continue  #  happens if Show entry doesn't have a title
+        try:
+            first_result_for_show = [i for i in results if i['episode of'].lower() == episode.show.title.lower()][0]
+        except IndexError:
+            continue
+        except AttributeError:
+            continue
+        try:
+            episode.season = first_result_for_show['season']
+            episode.number = first_result_for_show['episode']
+        except KeyError:
+            continue
+        episode.save()
+        print(f'Episode {episode.title} of {episode.show.title} season/episode number updated.')
+
+
     return redirect("/")

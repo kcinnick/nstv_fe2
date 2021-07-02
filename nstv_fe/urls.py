@@ -46,5 +46,10 @@ urlpatterns = [
         "update_downloaded_record_for_episodes_in_show/<show_id>",
         views.update_downloaded_record_for_episodes_in_show,
         name='update_downloaded_records',
+    ),
+    path(
+        "get_outstanding_season_episode_numbers",
+        views.get_outstanding_season_episode_numbers,
+        name='update_downloaded_records',
     )
 ]
