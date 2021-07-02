@@ -272,3 +272,24 @@ class UpdateDownloadedRecordTests(TestCase):
             'http://localhost:8000/update_downloaded_record_for_episodes_in_show/1'
         )
         self.assertEqual(Episode.objects.first().downloaded, True)
+
+
+class GetOutstandingSeasonEpisodeNumbersTests(TestCase):
+    def setUp(self) -> None:
+        Show.objects.create(
+            id=1,
+            title="Seinfeld",
+            gid=79169
+        )
+        Episode.objects.create(
+            id=1,
+            title="The Parking Garage",
+            original_air_date=datetime.date(1991, 10, 31),
+            show=Show.objects.get(title="Seinfeld"),
+        )
+
+    def test_get_outstanding_season_episode_numbers(self):
+        self.client.get(
+            'http://localhost:8000/get_outstanding_season_episode_numbers'
+        )
+        self.assertEqual(Episode.objects.first().season, 3)

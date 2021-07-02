@@ -99,7 +99,7 @@ class NZBGeek:
         return url
 
     def get_nzb(
-            self, show, season_number=None, episode_number=None, episode_title=None, hd=True
+            self, show, season_number=None, episode_number=None, episode_title=None, hd=True, strict=False
     ):
         """
         Searches and downloads the first result on NZBGeek for the given
@@ -111,6 +111,7 @@ class NZBGeek:
         @param episode_number:  int
         @param episode_title:  str, optional. If given, searches via show and episode title.
         @param hd:  bool, grabs only HD-categorized files if set to True
+        @param strict: if false, will allow an SD file to be downloaded even if hd is set to True
         @return:
         """
         url = self._build_search_url(
@@ -125,8 +126,10 @@ class NZBGeek:
         soup = BeautifulSoup(r.content, "html.parser")
         results = soup.find_all("table", class_="releases")
         results = [SearchResult(i) for i in results]
-        if hd:
+        if hd and strict:
             results = [i for i in results if i.category == "TV > HD"]
+            if len(results) == 0:
+                raise ValueError("No HD results found. HD & strict are set.")
 
         if not len(results):
             raise ValueError("No results found.")  # TODO: this should be more delicately handled
