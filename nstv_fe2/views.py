@@ -96,7 +96,7 @@ def get_outstanding_season_episode_numbers(
         try:
             results = ia.search_episode(episode.title)
         except imdb._exceptions.IMDbParserError:
-            continue  #  happens if Show entry doesn't have a title
+            continue  # happens if Show entry doesn't have a title
         try:
             first_result_for_show = [i for i in results if i['episode of'].lower() == episode.show.title.lower()][0]
         except IndexError:
@@ -110,6 +110,5 @@ def get_outstanding_season_episode_numbers(
             continue
         episode.save()
         print(f'Episode {episode.title} of {episode.show.title} season/episode number updated.')
-
 
     return redirect("/")
