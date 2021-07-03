@@ -69,7 +69,6 @@ def main(start_date=None, end_date=None):
     Searches for shows and episodes that aired during the range in the given datetimes,
     and parses the search result into Show and Episode objects for further use in the Django app.
     TODO: I don't love how this function is mainly calling other functions. should be more modular.
-    TODO: maybe just create a `main` function and call everything from there.
     :return:
     """
     #  TODO: make channels variable, run this through a util

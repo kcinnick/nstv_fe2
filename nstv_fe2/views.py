@@ -89,18 +89,19 @@ def get_outstanding_season_episode_numbers(
 ):
     ia = imdb.IMDb()
     episodes_without_season_episode_numbers = Episode.objects.filter(season=None)
-    print(f'{episodes_without_season_episode_numbers.count()} episodes found.')
+    print(f'{episodes_without_season_episode_numbers.count()} episodes without season or episode numbers found.')
+    print('Attempting to update.')
     for episode in episodes_without_season_episode_numbers:
         print('~~~')
         print(f'Searching for {episode.title}')
         try:
             results = ia.search_episode(episode.title)
         except imdb._exceptions.IMDbParserError:
-            continue  # happens if Show entry doesn't have a title
+            continue  # happens if episode entry doesn't have a title
         try:
             first_result_for_show = [i for i in results if i['episode of'].lower() == episode.show.title.lower()][0]
         except IndexError:
-            continue
+            continue  # happens if episode can't be found in IMDB
         except AttributeError:
             continue
         try:

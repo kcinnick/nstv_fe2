@@ -6,13 +6,6 @@ from django.test import TestCase
 
 from nstv_fe2.models import Episode, Show
 from nstv_fe2.nzbg import NZBGeek, SearchResult
-from nstv_fe2.tvtv_scraper import search_channel_listings, upload_channel_search_response
-from nstv_fe2.tests.shows.views.tests import ShowsIndexViewTests, ShowViewTests
-from nstv_fe2.tests.shows.get_episode.tests import ShowTestCase
-from nstv_fe2.tests.episodes.episode.tests import EpisodeTestCase
-from nstv_fe2.tests.tvtvscraper.parse_channel_search_response.tests import TvtvScraperParseChannelSearchResponseTests
-from nstv_fe2.tests.tvtvscraper.search_channels.tests import TvtvScraperSearchChannelsTests
-from nstv_fe2.tests.tvtvscraper.update_db.tests import TvtvScraperUpdateDbTests
 
 
 class NZBGeekTests(TestCase):
@@ -74,6 +67,12 @@ class NZBGeekTests(TestCase):
         )
         self.assertIn('S03E06', parsed_result.title)
         self.assertIn('Seinfeld', str(parsed_result))
+
+    def test_nzbgeek_strict_search_with_no_results_raises_valueerror(self):
+        show = Show.objects.get(id=1)
+        with self.assertRaises(ValueError):
+            self.nzbg.get_nzb(show=show, episode_title='This Episode Doesn\'t Exist', strict=True)
+        return
 
 
 class DownloadEpisodeTests(TestCase):
