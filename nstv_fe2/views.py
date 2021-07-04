@@ -1,3 +1,4 @@
+import datetime
 import os
 import imdb
 import plexapi.exceptions
@@ -8,7 +9,7 @@ from .models import Episode, Show
 from .nzbg import NZBGeek
 
 #  TODO: add page for updating DB
-from .tvtv_scraper import main as run_tvtv_scraper
+from .tvtv_scraper import upload_channel_search_response, search_channel_listings
 
 
 def update_downloaded_record_for_episodes_in_show(request, show_id):
@@ -23,10 +24,11 @@ def update_downloaded_record_for_episodes_in_show(request, show_id):
     token = os.getenv('PLEX_TOKEN')
     try:
         plex = PlexServer(base_url, token)
-    except plexapi.exceptions.Unauthorized:
-        raise PermissionError(
+    except plexapi.exceptions.Unauthorized as e:
+        print(
             '401 unauthorized for Plex. Did you set the PLEX_TOKEN environment variable (and is it valid)?'
         )
+        raise e
     plex_show = plex.library.section('TV Shows').get(django_show_title)
     for episode in plex_show.episodes():
         season = episode.parentTitle.split()[-1]
@@ -77,10 +79,19 @@ def download_episode(
 
 
 def search_and_update_show_and_episode_tables(
-        request
+        request, start_date=None, end_date=None
 ):
-    #  TODO: seems wrong to have a function just for one line of code
-    run_tvtv_scraper()
+    if not start_date:
+        start_date = (datetime.datetime.now() - datetime.timedelta(10)).strftime("%Y-%m-%d")
+        end_date = datetime.datetime.now().strftime("%Y-%m-%d")
+
+    json_response = search_channel_listings(
+        start_channel=45,
+        end_channel=47,
+        start_date=start_date,
+        end_date=end_date
+    )
+    upload_channel_search_response(json_response)
     return redirect("/")
 
 
@@ -89,27 +100,26 @@ def get_outstanding_season_episode_numbers(
 ):
     ia = imdb.IMDb()
     episodes_without_season_episode_numbers = Episode.objects.filter(season=None)
-    print(f'{episodes_without_season_episode_numbers.count()} episodes found.')
+    print(f'{episodes_without_season_episode_numbers.count()} episodes without season or episode numbers found.')
+    print('Attempting to update.')
     for episode in episodes_without_season_episode_numbers:
         print('~~~')
         print(f'Searching for {episode.title}')
         try:
             results = ia.search_episode(episode.title)
         except imdb._exceptions.IMDbParserError:
-            continue  #  happens if Show entry doesn't have a title
+            continue  # happens if episode entry doesn't have a title
         try:
             first_result_for_show = [i for i in results if i['episode of'].lower() == episode.show.title.lower()][0]
         except IndexError:
-            continue
+            continue  # happens if episode can't be found in IMDB
         except AttributeError:
             continue
-        try:
-            episode.season = first_result_for_show['season']
-            episode.number = first_result_for_show['episode']
-        except KeyError:
-            continue
+
+        episode.season = first_result_for_show.get('season')
+        episode.number = first_result_for_show.get('episode')
+
         episode.save()
         print(f'Episode {episode.title} of {episode.show.title} season/episode number updated.')
-
 
     return redirect("/")

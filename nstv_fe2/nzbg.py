@@ -130,6 +130,10 @@ class NZBGeek:
             results = [i for i in results if i.category == "TV > HD"]
             if len(results) == 0:
                 raise ValueError("No HD results found. HD & strict are set.")
+        elif hd:
+            hd_results = [i for i in results if i.category == "TV > HD"]
+            if len(hd_results) > 0:
+                results = hd_results
 
         if not len(results):
             raise ValueError("No results found.")  # TODO: this should be more delicately handled

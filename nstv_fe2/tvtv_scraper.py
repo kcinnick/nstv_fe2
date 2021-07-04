@@ -62,31 +62,3 @@ def upload_channel_search_response(response):
                 continue
                 #  TODO: handle these more properly.
                 #  they occur a lot on local news programs.
-
-
-def main(start_date=None, end_date=None):
-    """
-    Searches for shows and episodes that aired during the range in the given datetimes,
-    and parses the search result into Show and Episode objects for further use in the Django app.
-    TODO: I don't love how this function is mainly calling other functions. should be more modular.
-    TODO: maybe just create a `main` function and call everything from there.
-    :return:
-    """
-    #  TODO: make channels variable, run this through a util
-    if not start_date:
-        start_date = (datetime.datetime.now() - datetime.timedelta(10)).strftime("%Y-%m-%d")
-        end_date = datetime.datetime.now().strftime("%Y-%m-%d")
-
-    json_response = search_channel_listings(
-        start_channel=45,
-        end_channel=47,
-        start_date=start_date,
-        end_date=end_date
-    )
-    upload_channel_search_response(json_response)
-
-
-if __name__ == '__main__':
-    start_date = (datetime.datetime.now() - datetime.timedelta(10)).strftime("%Y-%m-%d")
-    end_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    main(start_date, end_date)
