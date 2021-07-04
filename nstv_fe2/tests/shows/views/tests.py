@@ -1,5 +1,7 @@
 import datetime
+import os
 
+import plexapi.exceptions
 from django.test import TestCase
 
 from nstv_fe2.models import Episode, Show
@@ -34,6 +36,11 @@ class ShowViewTests(TestCase):
     def setUp(self):
         self.nzbg = NZBGeek()
         self.nzbg.login()
+
+    def test_show_view(self):
+        """
+        If no questions exist, an appropriate message is displayed.
+        """
         Show.objects.create(
             id=1,
             title="Seinfeld",
@@ -48,10 +55,6 @@ class ShowViewTests(TestCase):
             show=Show.objects.get(title="Seinfeld"),
         )
 
-    def test_show_view(self):
-        """
-        If no questions exist, an appropriate message is displayed.
-        """
         response = self.client.get('http://localhost:8000/shows/1')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Seinfeld")
@@ -61,8 +64,25 @@ class ShowViewTests(TestCase):
         self.assertQuerysetEqual(response.context['show_episodes'], show_episodes)
 
     def test_update_downloaded_record_for_episodes_in_show(self):
+        Show.objects.create(
+            id=2,
+            title="Guy's Grocery Games",
+        )
+        response = self.client.get('http://localhost:8000/update_downloaded_record_for_episodes_in_show/2')
+        self.assertEqual(response.status_code, 302)
         return
-        #  TODO: finish this test
+
+    def test_update_downloaded_record_for_episodes_in_show_throws_plex_error_if_unauthorized(self):
+        plex_token = os.environ['PLEX_TOKEN']
+        Show.objects.create(
+            id=2,
+            title="Guy's Grocery Games",
+        )
+        os.environ['PLEX_TOKEN'] = 'dog'
+        with self.assertRaises(plexapi.exceptions.Unauthorized):
+            self.client.get('http://localhost:8000/update_downloaded_record_for_episodes_in_show/2')
+        os.environ['PLEX_TOKEN'] = plex_token
+        return
 
     def test_get_outstanding_season_episode_numbers_continues_if_invalid_episode_title(self):
         Episode.objects.create(
@@ -84,16 +104,16 @@ class ShowViewTests(TestCase):
         response = self.client.get('http://localhost:8000/get_outstanding_season_episode_numbers')
         self.assertEqual(response.status_code, 302)
 
-
     def test_get_outstanding_season_episode_numbers_continues_if_no_title_for_show(self):
-        show = Show.objects.create(title='', id=2)
         Episode.objects.create(
             title='This episode does not exist.',
             season=None,
             id=2,
-            show=show,
+            show=None,
         )
         response = self.client.get('http://localhost:8000/get_outstanding_season_episode_numbers')
         self.assertEqual(response.status_code, 302)
 
-
+    def test_search_and_update_show_and_episode_tables(self):
+        response = self.client.get('http://localhost:8000/update_database')
+        self.assertEqual(response.status_code, 302)
