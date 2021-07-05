@@ -77,7 +77,7 @@ class NZBGeek:
         :param season_number: int, the season the episode belongs to
         :param episode_number: int, the episode's number
         :param episode_title: str, the episode's title
-        :return:
+        :return: url: str, properly structured URL for search
         """
         if season_number and episode_number:
             print(f"\nSearching for {show.title} S{season_number} E{episode_number}")
