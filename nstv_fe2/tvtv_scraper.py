@@ -26,9 +26,9 @@ def search_channel_listings(start_channel, end_channel, start_date, end_date):
     print("\nSearching channels for TV showing details..\n")
     url = f"https://tvtv.us/tvm/t/tv/v4/lineups/95197D/listings/grid?detail="
     url += "%27brief%27&"
-    url += f"start={start_date}T04:00:00.000"
+    url += f"start={start_date}T00:00:00.000"
     url += "Z&"
-    url += f"end={end_date}T03:59:00.000"
+    url += f"end={end_date}T23:59:00.000"
     url += f"Z&startchan={start_channel}&endchan={end_channel}"
     r = requests.get(url)
     assert r.status_code == 200
@@ -46,17 +46,17 @@ def upload_channel_search_response(response):
         for listing in listings:
             if listing["showName"] == "Paid Program":
                 continue
-            show = Show.objects.get_or_create(title=listing['showName'])[0]
-            if len(listing['episodeTitle'].strip()):
-                title = listing['episodeTitle']
+            show = Show.objects.get_or_create(title=listing["showName"])[0]
+            if len(listing["episodeTitle"].strip()):
+                title = listing["episodeTitle"]
             else:
-                title = listing['episodeNumber']
+                title = listing["episodeNumber"]
             try:
                 Episode.objects.get_or_create(
                     title=title,
                     show_id=show.id,
-                    season=listing['seasonNumber'],
-                    number=listing['seasonSeqNo'],
+                    season=listing["seasonNumber"],
+                    number=listing["seasonSeqNo"],
                 )
             except IntegrityError:
                 continue
