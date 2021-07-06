@@ -11,8 +11,22 @@
 </head>
 <center><h1>{{ show.title }}</h1></center>
 <body>
-
-<a href="/update_downloaded_record_for_episodes_in_show/{{ show.id }}">Update downloaded records.</a>
+<nav role="navigation">
+    <ol class="nav-links">
+        <li class="">
+            <a href="/">
+                <div>
+                    Home
+                </div>
+            </a>
+        </li>
+        <li>
+            <a href="/update_downloaded_record_for_episodes_in_show/{{ show.id }}">
+                <div>
+                    Update database with new episode listings
+                </div>
+            </a>
+        </li>
 
 <table>
 <tr>
