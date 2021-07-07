@@ -4,6 +4,7 @@ from django.db import models
 class Show(models.Model):
     title = models.TextField(unique=True)
     gid = models.IntegerField(unique=True, null=True)  # this is the geek ID, used for easier downloading on NZBGeek
+    image_filename = models.TextField(null=True)
 
 
 class Episode(models.Model):
