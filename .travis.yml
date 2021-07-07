@@ -6,5 +6,5 @@ python:
 install: python -m pip install -r requirements.txt
 
 # Command to run tests, e.g. python setup.py test
-script: python manage.py test nstv_fe2.tests.tests /home/nick/PycharmProjects/nstv_fe
+script: python manage.py makemigrations;python manage.py migrate;python manage.py test nstv_fe2.tests.tests /home/nick/PycharmProjects/nstv_fe
 
