@@ -22,18 +22,18 @@ def update_downloaded_record_for_episodes_in_show(request, show_id):
     :return:
     """
     django_show_title = Show.objects.get(id=show_id).title
-    base_url = 'http://localhost:32400'
-    token = os.getenv('PLEX_TOKEN')
+    base_url = "http://localhost:32400"
+    token = os.getenv("PLEX_TOKEN")
     try:
         plex = PlexServer(base_url, token)
     except plexapi.exceptions.Unauthorized as e:
         #  if you need to get a new PLEX_TOKEN, follow the instructions here:
         #  https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/
         print(
-            '401 unauthorized for Plex. Did you set the PLEX_TOKEN environment variable (and is it valid)?'
+            "401 unauthorized for Plex. Did you set the PLEX_TOKEN environment variable (and is it valid)?"
         )
         raise e
-    plex_show = plex.library.section('TV Shows').get(django_show_title)
+    plex_show = plex.library.section("TV Shows").get(django_show_title)
     for episode in plex_show.episodes():
         season = episode.parentTitle.split()[-1]
         number = episode.index
@@ -42,15 +42,13 @@ def update_downloaded_record_for_episodes_in_show(request, show_id):
         except Episode.DoesNotExist:
             #  if a show exists on the hard drive but not in the nstv_fe database,
             #  we'll create it and mark it as downloaded.
-            episode_model = Episode.objects.create(
-                title=episode.title,
-            )
+            episode_model = Episode.objects.create(title=episode.title)
         episode_model.downloaded = True
         episode_model.season = season
         episode_model.number = number
         episode_model.save()
 
-    return redirect(f'/shows/{show_id}?updated=True')
+    return redirect(f"/shows/{show_id}?updated=True")
 
 
 def index(request):
@@ -71,7 +69,7 @@ def show(request, show_id):
     :return:
     """
     show = Show.objects.get(id=show_id)
-    show_episodes = Episode.objects.filter(show=show)
+    show_episodes = Episode.objects.filter(show=show).order_by("season", "number")
     return render(
         request,
         context={"show_episodes": show_episodes, "show": show},
@@ -80,7 +78,7 @@ def show(request, show_id):
 
 
 def download_episode(
-        request, show_id, season_number=None, episode_number=None, episode_title=None
+    request, show_id, season_number=None, episode_number=None, episode_title=None
 ):
     """
     Downloads an episode of the Show (identified by ID of the show in the database)
@@ -101,15 +99,18 @@ def download_episode(
         episode_title = episode.title
 
     parent_show = Show.objects.get(id=show_id)
-    print("Episode title: {}".format(episode_title))
-    nzb_geek.get_nzb(show=parent_show, episode_title=episode_title)
-
+    print(f"Episode title: {episode_title}")
+    downloaded = nzb_geek.get_nzb(show=parent_show, episode_title=episode_title)
+    if downloaded:
+        print(f"Episode {episode_title} for {parent_show.title} downloaded.")
+    else:
+        print(f"Couldn't locate episode {episode_title} for {parent_show.title}")
+        if not season_number:
+            print("Search was committed via episode title.")
     return redirect(f"/shows/{show_id}")
 
 
-def search_and_update_show_and_episode_tables(
-        request, start_date=None, end_date=None
-):
+def search_and_update_show_and_episode_tables(request, start_date=None, end_date=None):
     """
 
     :param request: django.http.request
@@ -118,22 +119,19 @@ def search_and_update_show_and_episode_tables(
     :return:
     """
     if not start_date:
-        start_date = (datetime.datetime.now() - datetime.timedelta(10)).strftime("%Y-%m-%d")
+        start_date = (datetime.datetime.now() - datetime.timedelta(1)).strftime(
+            "%Y-%m-%d"
+        )
         end_date = datetime.datetime.now().strftime("%Y-%m-%d")
 
     json_response = search_channel_listings(
-        start_channel=45,
-        end_channel=47,
-        start_date=start_date,
-        end_date=end_date
+        start_channel=45, end_channel=47, start_date=start_date, end_date=end_date
     )
     upload_channel_search_response(json_response)
     return redirect("/")
 
 
-def get_outstanding_season_episode_numbers(
-        request
-):
+def get_outstanding_season_episode_numbers(request):
     """
     For each Episode object in every Show in the database without one,
     attempts to get a season and episode number for each for later downloading.
@@ -143,26 +141,34 @@ def get_outstanding_season_episode_numbers(
     """
     ia = imdb.IMDb()
     episodes_without_season_episode_numbers = Episode.objects.filter(season=None)
-    print(f'{episodes_without_season_episode_numbers.count()} episodes without season or episode numbers found.')
-    print('Attempting to update.')
+    print(
+        f"{episodes_without_season_episode_numbers.count()} episodes without season or episode numbers found."
+    )
+    print("Attempting to update.")
     for episode in episodes_without_season_episode_numbers:
-        print('~~~')
-        print(f'Searching for {episode.title}')
+        print("~~~")
+        print(f"Searching for {episode.title}")
         try:
             results = ia.search_episode(episode.title)
         except imdb._exceptions.IMDbParserError:
             continue  # happens if episode entry doesn't have a title
         try:
-            first_result_for_show = [i for i in results if i['episode of'].lower() == episode.show.title.lower()][0]
+            first_result_for_show = [
+                i
+                for i in results
+                if i["episode of"].lower() == episode.show.title.lower()
+            ][0]
         except IndexError:
             continue  # happens if episode can't be found in IMDB
         except AttributeError:
             continue  # happens if episode belongs to a show without a title
 
-        episode.season = first_result_for_show.get('season')
-        episode.number = first_result_for_show.get('episode')
+        episode.season = first_result_for_show.get("season")
+        episode.number = first_result_for_show.get("episode")
 
         episode.save()
-        print(f'Episode {episode.title} of {episode.show.title} season/episode number updated.')
+        print(
+            f"Episode {episode.title} of {episode.show.title} season/episode number updated."
+        )
 
     return redirect("/")

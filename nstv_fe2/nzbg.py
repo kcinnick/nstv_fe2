@@ -68,7 +68,7 @@ class NZBGeek:
         return
 
     def _build_search_url(
-            self, show, season_number, episode_number, episode_title=None
+        self, show, season_number, episode_number, episode_title=None
     ):
         """
         Builds a valid search URL depending on whether or not the episode is being
@@ -99,7 +99,13 @@ class NZBGeek:
         return url
 
     def get_nzb(
-            self, show, season_number=None, episode_number=None, episode_title=None, hd=True, strict=False
+        self,
+        show,
+        season_number=None,
+        episode_number=None,
+        episode_title=None,
+        hd=True,
+        strict=False,
     ):
         """
         Searches and downloads the first result on NZBGeek for the given
@@ -134,9 +140,9 @@ class NZBGeek:
             hd_results = [i for i in results if i.category == "TV > HD"]
             if len(hd_results) > 0:
                 results = hd_results
-
         if not len(results):
-            raise ValueError("No results found.")  # TODO: this should be more delicately handled
+            print("No results found.")
+            return False
 
         webbrowser.open(results[0].download_url)
 
@@ -151,7 +157,10 @@ class NZBGeek:
             #  rename and move the files from Downloads to nstv_fe/nzbs/*
             file_name = file.split("/")[-1]
             dest_path = f"/home/nick/PycharmProjects/nstv_fe/nzbs/{file_name}"
-            os.rename(file, f"/home/nick/PycharmProjects/nstv_fe/nstv_fe2/finished/{file_name}")
+            os.rename(
+                file,
+                f"/home/nick/PycharmProjects/nstv_fe/nstv_fe2/finished/{file_name}",
+            )
             print(f"{file_name} moved to {dest_path}.")
 
-        return
+        return True
