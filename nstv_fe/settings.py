@@ -76,7 +76,7 @@ WSGI_APPLICATION = "nstv_fe.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "ENGINE": "django.db.backends.postgresql_psycopg2" if os.getenv('PLEX_TOKEN') else "django.db.backends.sqlite3",
         "NAME": "nstv_fe2",
         "USER": "postgres",
         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
