@@ -21,6 +21,7 @@
                 </div>
             </a>
         </li>
+        {% if show.id %}
         <li>
             <a href="/update_downloaded_records/{{ show.id }}">
                 <div>
@@ -28,6 +29,7 @@
                 </div>
             </a>
         </li>
+        {% endif %}
         <li>
             <a href="/get_outstanding_season_episode_numbers">
                 <div>

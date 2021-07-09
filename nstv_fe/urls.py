@@ -50,6 +50,6 @@ urlpatterns = [
     path(
         "get_outstanding_season_episode_numbers",
         views.get_outstanding_season_episode_numbers,
-        name='update_downloaded_records',
+        name='get_outstanding_season_episode_numbers',
     )
 ]
