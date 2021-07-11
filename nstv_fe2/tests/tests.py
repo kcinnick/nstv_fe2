@@ -14,6 +14,7 @@ from nstv_fe2.tests.tvtvscraper.parse_channel_search_response.tests import TvtvS
 from nstv_fe2.tests.tvtvscraper.search_channels.tests import TvtvScraperSearchChannelsTests
 from nstv_fe2.tests.tvtvscraper.update_db.tests import TvtvScraperUpdateDbTests
 from nstv_fe2.tests.nzbgeek.tests import NZBGeekTests, DownloadEpisodeTests
+from nstv_fe2.views import move_downloaded_files_to_path, refresh_plex_section
 
 
 class UpdateDownloadedRecordTests(TestCase):
@@ -55,3 +56,24 @@ class GetOutstandingSeasonEpisodeNumbersTests(TestCase):
             'http://localhost:8000/get_outstanding_season_episode_numbers'
         )
         self.assertEqual(Episode.objects.first().season, 3)
+
+
+class MoveFilesAfterDownloadTests(TestCase):
+    def setUp(self) -> None:
+        return
+
+    def test_move_downloaded_files_to_path(self):
+        move_downloaded_files_to_path(
+            nzb_dest_dir='/home/nick/nzbdownloads',
+            plex_dest_dir='/media/nick/My Passport/TV Shows'
+        )
+        return
+
+
+class RefreshPlexSectionTests(TestCase):
+    def setUp(self) -> None:
+        return
+
+    def test_refresh_plex_section(self):
+        refresh_plex_section()
+        return
