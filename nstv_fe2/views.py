@@ -75,7 +75,14 @@ def update_downloaded_record_for_episodes_in_show(request, show_id):
             "401 unauthorized for Plex. Did you set the PLEX_TOKEN environment variable (and is it valid)?"
         )
         raise e
-    plex_show = plex.library.section("TV Shows").get(django_show_title)
+    try:
+        plex_show = plex.library.section("TV Shows").get(django_show_title)
+    except plexapi.exceptions.NotFound as e:
+        #  some shows exist in the Django database, but don't exist in the Plex library.
+        #  this is because 0 episodes of that show have been downloaded, so there's no
+        #  record of the show in Plex.
+        raise e
+
     for episode in plex_show.episodes():
         season = episode.parentTitle.split()[-1]
         number = episode.index
